@@ -334,16 +334,6 @@ function TestsPage() {
 
                   {/* Settings Grid */}
                   <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-4 text-[11px] font-semibold text-muted-foreground border-y border-border/50 py-3">
-                    {details.class_id && (
-                      <span className="truncate flex items-center gap-1">
-                        <Layers className="h-3 w-3 text-muted-foreground/75" /> Cls: <strong className="text-foreground truncate">{details.class_id.substring(0, 12)}</strong>
-                      </span>
-                    )}
-                    {details.subject_id && (
-                      <span className="truncate flex items-center gap-1">
-                        <Award className="h-3 w-3 text-muted-foreground/75" /> Subj: <strong className="text-foreground truncate">{details.subject_id.substring(0, 12)}</strong>
-                      </span>
-                    )}
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3 text-muted-foreground/75" /> Date: <strong className="text-foreground">{examDate}</strong>
                     </span>
@@ -472,66 +462,7 @@ function TestsPage() {
                   </div>
                 </div>
 
-                {/* 2. Academic Settings */}
-                <div className="space-y-4 pt-2">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-primary border-b border-border pb-1">
-                    🎓 Academic context
-                  </h3>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="class-id">Class ID</Label>
-                      <Input 
-                        id="class-id" 
-                        value={classId} 
-                        onChange={(e) => setClassId(e.target.value)} 
-                        placeholder="e.g. 8c4b8eab..."
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label htmlFor="course-id">Course ID</Label>
-                      <Input 
-                        id="course-id" 
-                        value={courseId} 
-                        onChange={(e) => setCourseId(e.target.value)} 
-                        placeholder="e.g. e375c26e..."
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="division-id">Division ID</Label>
-                      <Input 
-                        id="division-id" 
-                        value={divisionId} 
-                        onChange={(e) => setDivisionId(e.target.value)} 
-                        placeholder="e.g. Div-A"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label htmlFor="subject-id">Subject ID</Label>
-                      <Input 
-                        id="subject-id" 
-                        value={subjectId} 
-                        onChange={(e) => setSubjectId(e.target.value)} 
-                        placeholder="e.g. 19086c91..."
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label htmlFor="session-id">Academic Session ID</Label>
-                    <Input 
-                      id="session-id" 
-                      value={academicSessionId} 
-                      onChange={(e) => setAcademicSessionId(e.target.value)} 
-                      placeholder="e.g. 662bf848..."
-                    />
-                  </div>
-                </div>
 
                 {/* 3. Evaluation Settings */}
                 <div className="space-y-4 pt-2">
@@ -623,25 +554,7 @@ function TestsPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="supervisor-id">Supervisor ID</Label>
-                    <Input 
-                      id="supervisor-id" 
-                      value={supervisorId} 
-                      onChange={(e) => setSupervisorId(e.target.value)} 
-                      placeholder="e.g. 44410011..."
-                    />
-                  </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="questionnaire-ids">Questionnaire IDs (comma separated)</Label>
-                    <Input 
-                      id="questionnaire-ids" 
-                      value={questionnaireIdsInput} 
-                      onChange={(e) => setQuestionnaireIdsInput(e.target.value)} 
-                      placeholder="e.g. e3353b6a-37b6-4cd7-9a7e-dc0cf2ad6604"
-                    />
-                  </div>
                 </div>
 
                 {/* Submit Container */}

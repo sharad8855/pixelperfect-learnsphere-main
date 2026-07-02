@@ -153,9 +153,10 @@ function ClassesPage() {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {classrooms.map((cls) => {
+            const isUUID = (val: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
             const teacherName = cls.users 
               ? `${cls.users.first_name} ${cls.users.last_name}` 
-              : cls.class_teacher || "Not assigned";
+              : (cls.class_teacher && !isUUID(cls.class_teacher) ? cls.class_teacher : (cls.class_teacher ? "Assigned" : "Not assigned"));
 
             return (
               <div key={cls.id} className="bg-card p-5 rounded-2xl ring-1 ring-border shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between border-t-4 border-t-primary min-h-[220px] relative overflow-hidden group">
@@ -254,21 +255,6 @@ function ClassesPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="class-teacher">Class Teacher User ID</Label>
-                  <Input 
-                    id="class-teacher" 
-                    value={classTeacher} 
-                    onChange={(e) => setClassTeacher(e.target.value)} 
-                    placeholder="e.g. 2c65b0c6-5b7e-41cc..."
-                  />
-                  {isTutor && user?.id === classTeacher && (
-                    <span className="text-[10px] text-primary font-bold block mt-1">
-                      ℹ️ Prefilled with your Teacher User ID
-                    </span>
-                  )}
-                </div>
-
-                <div className="space-y-1.5">
                   <Label htmlFor="max-students">Max Students Capacity</Label>
                   <Input 
                     id="max-students" 
@@ -276,16 +262,6 @@ function ClassesPage() {
                     value={maxStudents} 
                     onChange={(e) => setMaxStudents(e.target.value)} 
                     placeholder="e.g. 100"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="sub-teachers">Substitute Teacher IDs (comma separated)</Label>
-                  <Input 
-                    id="sub-teachers" 
-                    value={substituteTeacherInput} 
-                    onChange={(e) => setSubstituteTeacherInput(e.target.value)} 
-                    placeholder="e.g. uuid1, uuid2"
                   />
                 </div>
 
