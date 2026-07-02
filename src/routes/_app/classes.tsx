@@ -72,7 +72,7 @@ function ClassesPage() {
     setTitle("");
     setClassName("");
     setDetailedInfo("");
-    setClassTeacher(isTutor && user?.id ? user.id : "");
+    setClassTeacher(user?.id || "");
     setMaxStudents("");
     setIsEnabled(true);
     setSubstituteTeacherInput("");
