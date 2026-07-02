@@ -6,7 +6,8 @@ import { useAuthStore } from "@/lib/auth-store";
 export const Route = createFileRoute("/_app")({
   ssr: false,
   beforeLoad: () => {
-    const { token, client } = useAuthStore.getState();
+    const state = useAuthStore.getState();
+    const { token, client } = state;
     if (!token) throw redirect({ to: "/login" });
     if (!client) throw redirect({ to: "/organizations" });
   },

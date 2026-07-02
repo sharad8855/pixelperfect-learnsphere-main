@@ -153,33 +153,38 @@ function OrgSelector() {
             </div>
           ) : (
             <>
-              {clients.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => handlePick(c)}
-                  disabled={selecting !== null}
-                  className="group flex w-full items-center gap-4 rounded-xl border border-border bg-card p-4 text-left transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 disabled:opacity-60 cursor-pointer"
-                >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
-                    <Building2 className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold text-foreground group-hover:text-primary transition-colors text-[15px] leading-snug">
-                      {c.name}
+              {clients.map((c) => {
+                const name = c.name || (c as any).orgn_details?.[0]?.orgn_name || "Unnamed Organization";
+                const subdomain = c.subdomain || (c as any).orgn_details?.[0]?.address || (c as any).primary_info?.[0]?.locations?.[0]?.address || "";
+                
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => handlePick(c)}
+                    disabled={selecting !== null}
+                    className="group flex w-full items-center gap-4 rounded-xl border border-border bg-card p-4 text-left transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 disabled:opacity-60 cursor-pointer"
+                  >
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
+                      <Building2 className="h-5 w-5" />
                     </div>
-                    {c.subdomain && (
-                      <div className="text-xs text-muted-foreground mt-0.5 font-medium">
-                        {c.subdomain}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-foreground group-hover:text-primary transition-colors text-[15px] leading-snug">
+                        {name}
                       </div>
+                      {subdomain && (
+                        <div className="text-xs text-muted-foreground mt-0.5 font-medium">
+                          {subdomain}
+                        </div>
+                      )}
+                    </div>
+                    {selecting === c.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-primary shrink-0" />
+                    ) : (
+                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-all group-hover:text-primary group-hover:translate-x-1 shrink-0" />
                     )}
-                  </div>
-                  {selecting === c.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-primary shrink-0" />
-                  ) : (
-                    <ArrowRight className="h-4 w-4 text-muted-foreground transition-all group-hover:text-primary group-hover:translate-x-1 shrink-0" />
-                  )}
-                </button>
-              ))}
+                  </button>
+                );
+              })}
 
               {canLoadMore && (
                 <div className="pt-2">

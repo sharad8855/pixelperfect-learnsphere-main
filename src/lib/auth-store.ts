@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { ROLE_PERMISSIONS } from "./can";
 
 export interface AuthUser {
   id: string;
@@ -22,6 +23,8 @@ export interface Permission {
   actions?: string[];
 }
 
+export type RoleType = "student" | "teacher" | "admin";
+
 interface AuthState {
   token: string | null;
   user: AuthUser | null;
@@ -35,11 +38,26 @@ interface AuthState {
   setClient: (c: AuthClient) => void;
   setRoleAndPermissions: (roleId: string, roleName: string | null, perms: Permission[]) => void;
   logout: () => void;
+  getRole: () => RoleType;
+  hasPermission: (code: string) => boolean;
+  hasRole: (...roles: RoleType[]) => boolean;
+}
+
+export function computeRoleType(roleName: string | null): RoleType {
+  if (!roleName) return "student";
+  const parsed = roleName.toLowerCase();
+  if (parsed === "admin" || parsed === "superadmin" || parsed === "super admin") return "admin";
+  if (parsed === "tutor" || parsed === "teacher" || parsed === "instructor") return "teacher";
+  return "student";
+}
+
+export function getPermissionCodes(permissions: Permission[]): string[] {
+  return permissions.map((p) => p.permission?.code).filter((c): c is string => !!c);
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       token: null,
       user: null,
       client: null,
@@ -62,6 +80,20 @@ export const useAuthStore = create<AuthState>()(
           roleName: null,
           permissions: [],
         }),
+      getRole: () => computeRoleType(get().roleName),
+      hasPermission: (code: string) => {
+        const currentRole = computeRoleType(get().roleName);
+        const staticPerms = ROLE_PERMISSIONS[currentRole] || [];
+        if (staticPerms.includes(code as any)) {
+          return true;
+        }
+        const codes = getPermissionCodes(get().permissions);
+        return codes.includes(code);
+      },
+      hasRole: (...roles: RoleType[]) => {
+        const current = computeRoleType(get().roleName);
+        return roles.includes(current);
+      },
     }),
     { name: "baapedu-auth" },
   ),

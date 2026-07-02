@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useAuthStore } from "@/lib/auth-store";
 import { useEffect, useState } from "react";
-import { lms } from "@/lib/api-client";
+
 import {
   BookOpen,
   Plus,
@@ -44,8 +44,8 @@ function CoursesPage() {
   const client = useAuthStore((s) => s.client);
   const storedRoleName = useAuthStore((s) => s.roleName);
   
-  const [courses, setCourses] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [courses, setCourses] = useState<any[]>(MOCK_COURSES);
+  const [loading, setLoading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   
@@ -61,33 +61,6 @@ function CoursesPage() {
   const isTutor = storedRoleName?.toLowerCase() === "tutor" || storedRoleName?.toLowerCase() === "teacher" || storedRoleName?.toLowerCase() === "instructor";
   const isAdmin = storedRoleName?.toLowerCase() === "admin" || storedRoleName?.toLowerCase() === "superadmin";
   const isAllowedToManage = isTutor || isAdmin;
-
-  // Fetch Courses
-  const fetchCourses = async () => {
-    if (!client) return;
-    setLoading(true);
-    try {
-      // In fastify backend: courseRoutes is registered with prefix '/client/:client_id'
-      // The endpoint to get all is GET /all-courses
-      const res = await lms.get<{ items?: any[]; data?: { courses?: any[] } }>(`/client/${client.id}/all-courses`);
-      // Read arrays based on backend response shape
-      const list = (res as any)?.items || res?.data?.courses || [];
-      if (list.length > 0) {
-        setCourses(list);
-      } else {
-        setCourses(MOCK_COURSES);
-      }
-    } catch (err: any) {
-      console.warn("Backend API not reachable. Using fallback courses.", err.message);
-      setCourses(MOCK_COURSES);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCourses();
-  }, [client]);
 
   // Open Add Modal
   const openAddModal = () => {
@@ -134,21 +107,18 @@ function CoursesPage() {
       tags: tagsInput ? tagsInput.split(",").map(t => t.trim()).filter(Boolean) : [],
     };
 
-    try {
-      if (isEditing && editId) {
-        // PUT /client/:client_id/course/:id
-        await lms.put(`/client/${client.id}/course/${editId}`, payload);
-        toast.success("Course updated successfully");
-      } else {
-        // POST /client/:client_id/course
-        await lms.post(`/client/${client.id}/course`, payload);
-        toast.success("Course created successfully");
-      }
-      setIsFormOpen(false);
-      fetchCourses();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save course");
+    if (isEditing && editId) {
+      setCourses(prev => prev.map(c => c.id === editId ? { ...c, ...payload } : c));
+      toast.success("Course updated successfully");
+    } else {
+      const newCourse = {
+        id: String(Date.now()),
+        ...payload
+      };
+      setCourses(prev => [...prev, newCourse]);
+      toast.success("Course created successfully");
     }
+    setIsFormOpen(false);
   };
 
   // Delete Course
@@ -156,14 +126,8 @@ function CoursesPage() {
     if (!client) return;
     if (!confirm("Are you sure you want to delete this course?")) return;
 
-    try {
-      // DELETE /client/:client_id/courses/:id
-      await lms.del(`/client/${client.id}/courses/${courseId}`);
-      toast.success("Course deleted");
-      fetchCourses();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete course");
-    }
+    setCourses(prev => prev.filter(c => c.id !== courseId));
+    toast.success("Course deleted");
   };
 
   return (

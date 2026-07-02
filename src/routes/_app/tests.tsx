@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useAuthStore } from "@/lib/auth-store";
 import { useEffect, useState } from "react";
-import { lms } from "@/lib/api-client";
+
 import {
   HelpCircle,
   Plus,
@@ -38,8 +38,8 @@ function TestsPage() {
   const client = useAuthStore((s) => s.client);
   const storedRoleName = useAuthStore((s) => s.roleName);
   
-  const [exams, setExams] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [exams, setExams] = useState<any[]>(MOCK_EXAMS);
+  const [loading, setLoading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   
@@ -53,34 +53,6 @@ function TestsPage() {
   const isTutor = storedRoleName?.toLowerCase() === "tutor" || storedRoleName?.toLowerCase() === "teacher" || storedRoleName?.toLowerCase() === "instructor";
   const isAdmin = storedRoleName?.toLowerCase() === "admin" || storedRoleName?.toLowerCase() === "superadmin";
   const isAllowedToManage = isTutor || isAdmin;
-
-  // Fetch Exams
-  const fetchExams = async () => {
-    if (!client || !user) return;
-    setLoading(true);
-    try {
-      if (isAllowedToManage) {
-        // GET /client/:client_id/all-exams
-        const res = await lms.get<{ data?: any[] } | any[]>(`/client/${client.id}/all-exams`);
-        const list = Array.isArray(res) ? res : res?.data || [];
-        setExams(list.length > 0 ? list : MOCK_EXAMS);
-      } else {
-        // GET /client/:client_id/assigned-exams/:user_id
-        const res = await lms.get<{ data?: any[] } | any[]>(`/client/${client.id}/assigned-exams/${user.id}`);
-        const list = Array.isArray(res) ? res : res?.data || [];
-        setExams(list.length > 0 ? list : MOCK_EXAMS);
-      }
-    } catch (err: any) {
-      console.warn("Backend API not reachable. Using fallback exams.", err.message);
-      setExams(MOCK_EXAMS);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchExams();
-  }, [client]);
 
   // Open Add Modal
   const openAddModal = () => {
@@ -121,21 +93,19 @@ function TestsPage() {
       description,
     };
 
-    try {
-      if (isEditing && editId) {
-        // PUT /client/:client_id/exam/:id
-        await lms.put(`/client/${client.id}/exam/${editId}`, payload);
-        toast.success("Exam updated successfully");
-      } else {
-        // POST /client/:client_id/exams
-        await lms.post(`/client/${client.id}/exams`, payload);
-        toast.success("Exam created successfully");
-      }
-      setIsFormOpen(false);
-      fetchExams();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save exam");
+    if (isEditing && editId) {
+      setExams(prev => prev.map(exam => exam.id === editId ? { ...exam, ...payload } : exam));
+      toast.success("Exam updated successfully");
+    } else {
+      const newExam = {
+        id: String(Date.now()),
+        status: "ASSIGNED",
+        ...payload
+      };
+      setExams(prev => [...prev, newExam]);
+      toast.success("Exam created successfully");
     }
+    setIsFormOpen(false);
   };
 
   // Delete Exam
@@ -143,14 +113,8 @@ function TestsPage() {
     if (!client) return;
     if (!confirm("Are you sure you want to delete this exam?")) return;
 
-    try {
-      // DELETE /client/:client_id/exam/:id
-      await lms.del(`/client/${client.id}/exam/${examId}`);
-      toast.success("Exam deleted");
-      fetchExams();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete exam");
-    }
+    setExams(prev => prev.filter(exam => exam.id !== examId));
+    toast.success("Exam deleted");
   };
 
   // Student Start Exam Simulation

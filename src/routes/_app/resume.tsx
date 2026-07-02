@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useAuthStore } from "@/lib/auth-store";
 import { useEffect, useState } from "react";
-import { lms } from "@/lib/api-client";
+
 import {
   FileText,
   User,
@@ -83,22 +83,22 @@ function ResumePage() {
   const [projects, setProjects] = useState<any[]>([]);
 
   // Fetch Resume
-  const fetchResume = async () => {
+  const fetchResume = () => {
     if (!client || !user) return;
     setLoading(true);
     try {
-      // GET /client/:client_id/resume/user/:userId
-      const res = await lms.get<any>(`/client/${client.id}/resume/user/${user.id}`);
-      const data = res?.data || res;
-      if (data && data.name) {
-        setResume(data);
-        populateForm(data);
+      const localKey = `baapedu-resume-${user.id}`;
+      const saved = localStorage.getItem(localKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setResume(parsed);
+        populateForm(parsed);
       } else {
         setResume(MOCK_RESUME);
         populateForm(MOCK_RESUME);
       }
     } catch (err: any) {
-      console.warn("Backend API not reachable. Using fallback resume.", err.message);
+      console.warn("Failed to load resume from localStorage, using mock data", err.message);
       setResume(MOCK_RESUME);
       populateForm(MOCK_RESUME);
     } finally {
@@ -150,10 +150,8 @@ function ResumePage() {
     };
 
     try {
-      // Try to create/update resume.
-      // POST /client/:client_id/resume or PUT /client/:client_id/resume/user/:userId
-      // We will POST to create/update as simple dropon mapping.
-      await lms.post(`/client/${client.id}/resume`, payload);
+      const localKey = `baapedu-resume-${user.id}`;
+      localStorage.setItem(localKey, JSON.stringify(payload));
       toast.success("Resume saved successfully!");
       setResume(payload);
       setIsEditing(false);

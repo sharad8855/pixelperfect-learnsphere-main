@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useAuthStore } from "@/lib/auth-store";
 import { useEffect, useState } from "react";
-import { lms } from "@/lib/api-client";
+
 import {
   ClipboardList,
   Plus,
@@ -46,8 +46,8 @@ function AssignmentsPage() {
   const client = useAuthStore((s) => s.client);
   const storedRoleName = useAuthStore((s) => s.roleName);
   
-  const [assignments, setAssignments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [assignments, setAssignments] = useState<any[]>(MOCK_ASSIGNMENTS);
+  const [loading, setLoading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   
@@ -62,38 +62,6 @@ function AssignmentsPage() {
   const isTutor = storedRoleName?.toLowerCase() === "tutor" || storedRoleName?.toLowerCase() === "teacher" || storedRoleName?.toLowerCase() === "instructor";
   const isAdmin = storedRoleName?.toLowerCase() === "admin" || storedRoleName?.toLowerCase() === "superadmin";
   const isAllowedToManage = isTutor || isAdmin;
-
-  // Fetch assignments/action items
-  const fetchAssignments = async () => {
-    if (!client || !user) return;
-    setLoading(true);
-    try {
-      if (isAllowedToManage) {
-        // GET /client/:client_id/action-items
-        const res = await lms.get<any[] | { data?: any[] }>(`/client/${client.id}/action-items`);
-        const list = Array.isArray(res) ? res : res?.data || [];
-        setAssignments(list.length > 0 ? list : MOCK_ASSIGNMENTS);
-      } else {
-        // GET /client/:client_id/get-assigned-action-items-byuser/:user_id
-        const res = await lms.get<any[] | { data?: any[] }>(`/client/${client.id}/get-assigned-action-items-byuser/${user.id}`);
-        const list = Array.isArray(res) ? res : res?.data || [];
-        setAssignments(list.length > 0 ? list : MOCK_ASSIGNMENTS);
-      }
-    } catch (err: any) {
-      console.warn("Backend API not reachable. Using fallback assignments.", err.message);
-      setAssignments(MOCK_ASSIGNMENTS);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAssignments();
-  }, [client, viewRoleChangedTrigger()]); // Reload when view mode switches
-
-  function viewRoleChangedTrigger() {
-    return isAllowedToManage;
-  }
 
   // Open Add Modal
   const openAddModal = () => {
@@ -139,21 +107,19 @@ function AssignmentsPage() {
         : [{ id: user.id, name: user.name || "Tutor" }],
     };
 
-    try {
-      if (isEditing && editId) {
-        // PUT /client/:client_id/action-items/:id
-        await lms.put(`/client/${client.id}/action-items/${editId}`, payload);
-        toast.success("Assignment updated successfully");
-      } else {
-        // POST /client/:client_id/action-items
-        await lms.post(`/client/${client.id}/action-items`, payload);
-        toast.success("Assignment created successfully");
-      }
-      setIsFormOpen(false);
-      fetchAssignments();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save assignment");
+    if (isEditing && editId) {
+      setAssignments(prev => prev.map(item => item.id === editId ? { ...item, ...payload } : item));
+      toast.success("Assignment updated successfully");
+    } else {
+      const newAssignment = {
+        id: String(Date.now()),
+        status: "ASSIGNED",
+        ...payload
+      };
+      setAssignments(prev => [...prev, newAssignment]);
+      toast.success("Assignment created successfully");
     }
+    setIsFormOpen(false);
   };
 
   // Delete Action Item
@@ -161,30 +127,15 @@ function AssignmentsPage() {
     if (!client) return;
     if (!confirm("Are you sure you want to delete this assignment?")) return;
 
-    try {
-      // DELETE /client/:client_id/action-items/:id
-      await lms.del(`/client/${client.id}/action-items/${itemId}`);
-      toast.success("Assignment deleted");
-      fetchAssignments();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete assignment");
-    }
+    setAssignments(prev => prev.filter(item => item.id !== itemId));
+    toast.success("Assignment deleted");
   };
 
   // Student: Submit Assignment
   const handleStudentSubmit = async (itemId: string) => {
     if (!client || !user) return;
-    try {
-      // PUT /client/:client_id/update-assigned-action-status/:user_id
-      await lms.put(`/client/${client.id}/update-assigned-action-status/${user.id}`, {
-        action_item_id: [itemId],
-        status: "SUBMITTED",
-      });
-      toast.success("Assignment submitted successfully!");
-      fetchAssignments();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to submit assignment");
-    }
+    setAssignments(prev => prev.map(item => item.id === itemId ? { ...item, status: "SUBMITTED" } : item));
+    toast.success("Assignment submitted successfully!");
   };
 
   return (

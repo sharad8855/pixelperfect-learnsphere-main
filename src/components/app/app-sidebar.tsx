@@ -2,39 +2,51 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   BookOpen,
-  Video,
   ClipboardList,
   HelpCircle,
-  Award,
   FileText,
-  MessagesSquare,
   Users,
-  UserCog,
-  Calendar,
   User,
   Settings,
-  LifeBuoy,
-  Sparkles,
   Crown,
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
+import { useAuthStore, type RoleType } from "@/lib/auth-store";
+import { PERM } from "@/lib/can";
 
-const learning = [
+type SidebarItem = {
+  to: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  roles?: RoleType[];
+  permission?: string;
+};
+
+const learning: SidebarItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/courses", label: "My Courses", icon: BookOpen },
-  { to: "/assignments", label: "Assignments", icon: ClipboardList },
-  { to: "/tests", label: "Tests / Exams", icon: HelpCircle },
-] as const;
+  { to: "/courses", label: "My Courses", icon: BookOpen, permission: PERM.COURSE_VIEW },
+  {
+    to: "/assignments",
+    label: "Assignments",
+    icon: ClipboardList,
+    permission: PERM.ACTION_ITEM_VIEW,
+  },
+  { to: "/tests", label: "Tests / Exams", icon: HelpCircle, permission: PERM.TEST_VIEW },
+];
 
-const careers = [
-  { to: "/resume", label: "My Resume", icon: FileText },
-] as const;
+const management: SidebarItem[] = [
+  { to: "/users", label: "Users", icon: Users, roles: ["admin"], permission: PERM.USER_MANAGE },
+];
 
-const account = [
-  { to: "/profile", label: "Profile", icon: User },
-  { to: "/settings", label: "Settings", icon: Settings },
-] as const;
+const careers: SidebarItem[] = [
+  { to: "/resume", label: "My Resume", icon: FileText, permission: PERM.RESUME_VIEW },
+];
+
+const account: SidebarItem[] = [
+  { to: "/profile", label: "Profile", icon: User, permission: PERM.PROFILE_MANAGE },
+  { to: "/settings", label: "Settings", icon: Settings, permission: PERM.SETTINGS_MANAGE },
+];
 
 function Section({ title }: { title: string }) {
   return (
@@ -44,17 +56,7 @@ function Section({ title }: { title: string }) {
   );
 }
 
-function Item({
-  to,
-  label,
-  icon: Icon,
-  active,
-}: {
-  to: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  active: boolean;
-}) {
+function Item({ to, label, icon: Icon, active }: SidebarItem & { active: boolean }) {
   return (
     <Link
       to={to}
@@ -70,10 +72,33 @@ function Item({
   );
 }
 
+function filterItems(
+  items: SidebarItem[],
+  role: ReturnType<typeof useAuthStore.getState>,
+): SidebarItem[] {
+  return items.filter((item) => {
+    if (item.roles && !item.roles.includes(role.getRole())) return false;
+    if (item.permission && !role.hasPermission(item.permission)) return false;
+    return true;
+  });
+}
+
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const store = useAuthStore();
   const isActive = (to: string) =>
     to === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(to);
+
+  const visibleLearning = filterItems(learning, store);
+  const visibleManagement = filterItems(management, store);
+  const visibleCareers = filterItems(careers, store);
+  const visibleAccount = filterItems(account, store);
+
+  const hasAnyNav =
+    visibleLearning.length > 0 ||
+    visibleManagement.length > 0 ||
+    visibleCareers.length > 0 ||
+    visibleAccount.length > 0;
 
   return (
     <aside className="sticky top-0 hidden h-screen w-[260px] shrink-0 flex-col bg-sidebar text-sidebar-foreground lg:flex">
@@ -87,26 +112,55 @@ export function AppSidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto pb-4">
-        <Section title="Learning" />
-        <div className="space-y-1">
-          {learning.map((i) => (
-            <Item key={i.to} {...i} active={isActive(i.to)} />
-          ))}
-        </div>
+        {visibleLearning.length > 0 && (
+          <>
+            <Section title="Learning" />
+            <div className="space-y-1">
+              {visibleLearning.map((i) => (
+                <Item key={i.to} {...i} active={isActive(i.to)} />
+              ))}
+            </div>
+          </>
+        )}
 
-        <Section title="Careers" />
-        <div className="space-y-1">
-          {careers.map((i) => (
-            <Item key={i.to} {...i} active={isActive(i.to)} />
-          ))}
-        </div>
+        {visibleManagement.length > 0 && (
+          <>
+            <Section title="Management" />
+            <div className="space-y-1">
+              {visibleManagement.map((i) => (
+                <Item key={i.to} {...i} active={isActive(i.to)} />
+              ))}
+            </div>
+          </>
+        )}
 
-        <Section title="Account" />
-        <div className="space-y-1">
-          {account.map((i) => (
-            <Item key={i.to} {...i} active={isActive(i.to)} />
-          ))}
-        </div>
+        {visibleCareers.length > 0 && (
+          <>
+            <Section title="Careers" />
+            <div className="space-y-1">
+              {visibleCareers.map((i) => (
+                <Item key={i.to} {...i} active={isActive(i.to)} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {visibleAccount.length > 0 && (
+          <>
+            <Section title="Account" />
+            <div className="space-y-1">
+              {visibleAccount.map((i) => (
+                <Item key={i.to} {...i} active={isActive(i.to)} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {!hasAnyNav && (
+          <div className="px-6 py-8 text-center text-xs text-white/40">
+            No menu items available for your role.
+          </div>
+        )}
       </nav>
 
       <div className="m-4 rounded-xl bg-gradient-to-br from-indigo-950/40 to-slate-900/60 p-4 border border-indigo-500/20 relative overflow-hidden shadow-lg shadow-black/25">
@@ -120,7 +174,10 @@ export function AppSidebar() {
         <p className="mt-2.5 text-xs leading-relaxed text-white/60">
           Unlock exclusive courses, certificates and premium resources.
         </p>
-        <Button size="sm" className="mt-3.5 w-full bg-primary text-primary-foreground hover:bg-primary/95 transition-all font-semibold shadow-md active:scale-[0.98] cursor-pointer">
+        <Button
+          size="sm"
+          className="mt-3.5 w-full bg-primary text-primary-foreground hover:bg-primary/95 transition-all font-semibold shadow-md active:scale-[0.98] cursor-pointer"
+        >
           Upgrade Now
         </Button>
       </div>
