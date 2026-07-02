@@ -8,6 +8,7 @@ import {
   Users,
   User,
   Settings,
+  GraduationCap,
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ type SidebarItem = {
 const learning: SidebarItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/courses", label: "My Courses", icon: BookOpen, permission: PERM.COURSE_VIEW },
+  { to: "/classes", label: "My Classes", icon: GraduationCap, permission: PERM.COURSE_VIEW },
   {
     to: "/assignments",
     label: "Assignments",

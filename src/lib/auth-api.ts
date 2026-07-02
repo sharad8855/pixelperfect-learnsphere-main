@@ -169,4 +169,55 @@ export const authApi = {
         updated_by: string;
       };
     }>(`/api/courses/client/${clientId}/course/${courseId}`),
+
+  createClassroom: (
+    clientId: string,
+    payload: {
+      title: string;
+      class_name: string;
+      detailed_info: string;
+      class_teacher?: string | null;
+      max_students?: string | number | null;
+      is_enabled: boolean;
+      client_id: string;
+      substitute_teacher: string[];
+    }
+  ) =>
+    erp.post<{
+      success: boolean;
+      message?: string;
+      classroom?: {
+        id: string;
+        title: string;
+        class_name: string;
+        detailed_info?: string | null;
+        class_teacher?: string | null;
+        max_students?: number | null;
+        is_enabled: boolean;
+        client_id: string;
+        substitute_teacher: string[];
+      };
+    }>(`/api/classes/client/${clientId}`, payload),
+
+  getClassrooms: (clientId: string, page = 1, limit = 50) =>
+    erp.get<{
+      success: boolean;
+      message?: string;
+      classrooms?: Array<{
+        id: string;
+        title: string;
+        class_name: string;
+        detailed_info?: string | null;
+        class_teacher?: string | null;
+        max_students?: number | null;
+        is_enabled: boolean;
+        client_id: string;
+        substitute_teacher: string[];
+        users?: {
+          id: string;
+          first_name: string;
+          last_name: string;
+        } | null;
+      }>;
+    }>(`/api/classes/client/${clientId}?page=${page}&limit=${limit}`),
 };

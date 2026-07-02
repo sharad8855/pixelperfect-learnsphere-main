@@ -19,6 +19,7 @@ import { Route as AppResumeRouteImport } from './routes/_app/resume'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppCoursesRouteImport } from './routes/_app/courses'
+import { Route as AppClassesRouteImport } from './routes/_app/classes'
 import { Route as AppAssignmentsRouteImport } from './routes/_app/assignments'
 
 const OrganizationsRoute = OrganizationsRouteImport.update({
@@ -70,6 +71,11 @@ const AppCoursesRoute = AppCoursesRouteImport.update({
   path: '/courses',
   getParentRoute: () => AppRoute,
 } as any)
+const AppClassesRoute = AppClassesRouteImport.update({
+  id: '/classes',
+  path: '/classes',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAssignmentsRoute = AppAssignmentsRouteImport.update({
   id: '/assignments',
   path: '/assignments',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/organizations': typeof OrganizationsRoute
   '/assignments': typeof AppAssignmentsRoute
+  '/classes': typeof AppClassesRoute
   '/courses': typeof AppCoursesRoute
   '/dashboard': typeof AppDashboardRoute
   '/profile': typeof AppProfileRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/organizations': typeof OrganizationsRoute
   '/assignments': typeof AppAssignmentsRoute
+  '/classes': typeof AppClassesRoute
   '/courses': typeof AppCoursesRoute
   '/dashboard': typeof AppDashboardRoute
   '/profile': typeof AppProfileRoute
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/organizations': typeof OrganizationsRoute
   '/_app/assignments': typeof AppAssignmentsRoute
+  '/_app/classes': typeof AppClassesRoute
   '/_app/courses': typeof AppCoursesRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/profile': typeof AppProfileRoute
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/organizations'
     | '/assignments'
+    | '/classes'
     | '/courses'
     | '/dashboard'
     | '/profile'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/organizations'
     | '/assignments'
+    | '/classes'
     | '/courses'
     | '/dashboard'
     | '/profile'
@@ -146,6 +157,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/organizations'
     | '/_app/assignments'
+    | '/_app/classes'
     | '/_app/courses'
     | '/_app/dashboard'
     | '/_app/profile'
@@ -233,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCoursesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/classes': {
+      id: '/_app/classes'
+      path: '/classes'
+      fullPath: '/classes'
+      preLoaderRoute: typeof AppClassesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/assignments': {
       id: '/_app/assignments'
       path: '/assignments'
@@ -245,6 +264,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAssignmentsRoute: typeof AppAssignmentsRoute
+  AppClassesRoute: typeof AppClassesRoute
   AppCoursesRoute: typeof AppCoursesRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppProfileRoute: typeof AppProfileRoute
@@ -255,6 +275,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAssignmentsRoute: AppAssignmentsRoute,
+  AppClassesRoute: AppClassesRoute,
   AppCoursesRoute: AppCoursesRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppProfileRoute: AppProfileRoute,
