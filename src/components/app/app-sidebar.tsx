@@ -8,7 +8,6 @@ import {
   Users,
   User,
   Settings,
-  Crown,
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
@@ -111,7 +110,7 @@ export function AppSidebar() {
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto pb-4">
+      <nav className="flex-1 overflow-y-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {visibleLearning.length > 0 && (
           <>
             <Section title="Learning" />
@@ -162,25 +161,6 @@ export function AppSidebar() {
           </div>
         )}
       </nav>
-
-      <div className="m-4 rounded-xl bg-gradient-to-br from-indigo-950/40 to-slate-900/60 p-4 border border-indigo-500/20 relative overflow-hidden shadow-lg shadow-black/25">
-        <div className="absolute -right-6 -bottom-6 h-20 w-20 rounded-full bg-primary/10 blur-xl"></div>
-        <div className="flex items-center gap-2 text-white">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">
-            <Crown className="h-[18px] w-[18px] fill-amber-400/20" />
-          </div>
-          <span className="text-sm font-bold tracking-wide">Go Premium</span>
-        </div>
-        <p className="mt-2.5 text-xs leading-relaxed text-white/60">
-          Unlock exclusive courses, certificates and premium resources.
-        </p>
-        <Button
-          size="sm"
-          className="mt-3.5 w-full bg-primary text-primary-foreground hover:bg-primary/95 transition-all font-semibold shadow-md active:scale-[0.98] cursor-pointer"
-        >
-          Upgrade Now
-        </Button>
-      </div>
     </aside>
   );
 }

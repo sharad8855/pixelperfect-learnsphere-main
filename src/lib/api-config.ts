@@ -1,7 +1,7 @@
 // API base URLs — override via VITE_* env vars in Lovable settings.
 export const ERP_BASE =
   (import.meta as any).env?.VITE_ERP_BASE_URL ||
-  "https://platform-development-dev.157.20.214.214.nip.io";
+  "https://qa-new-platform.duckdns.org/auth";
 
 export const LMS_BASE =
   (import.meta as any).env?.VITE_LMS_BASE_URL ||

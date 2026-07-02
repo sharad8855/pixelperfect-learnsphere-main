@@ -48,6 +48,10 @@ export const erp = {
     request<T>(`${ERP_BASE}${path}`, { method: "GET", ...opts }),
   post: <T>(path: string, body?: unknown, opts?: FetchOpts) =>
     request<T>(`${ERP_BASE}${path}`, { method: "POST", json: body, ...opts }),
+  put: <T>(path: string, body?: unknown, opts?: FetchOpts) =>
+    request<T>(`${ERP_BASE}${path}`, { method: "PUT", json: body, ...opts }),
+  del: <T>(path: string, opts?: FetchOpts) =>
+    request<T>(`${ERP_BASE}${path}`, { method: "DELETE", ...opts }),
 };
 
 export const lms = {

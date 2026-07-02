@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useAuthStore } from "@/lib/auth-store";
 import { useEffect, useState } from "react";
 
+import { authApi } from "@/lib/auth-api";
 import {
   BookOpen,
   Plus,
@@ -13,6 +14,7 @@ import {
   ArrowRight,
   MoreVertical,
   X,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,14 +46,15 @@ function CoursesPage() {
   const client = useAuthStore((s) => s.client);
   const storedRoleName = useAuthStore((s) => s.roleName);
   
-  const [courses, setCourses] = useState<any[]>(MOCK_COURSES);
-  const [loading, setLoading] = useState(false);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   
   // Form States
   const [editId, setEditId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
+  const [duration, setDuration] = useState("");
   const [level, setLevel] = useState<"BEGINNER" | "INTERMEDIATE" | "ADVANCED">("BEGINNER");
   const [language, setLanguage] = useState("ENGLISH");
   const [description, setDescription] = useState("");
@@ -62,11 +65,42 @@ function CoursesPage() {
   const isAdmin = storedRoleName?.toLowerCase() === "admin" || storedRoleName?.toLowerCase() === "superadmin";
   const isAllowedToManage = isTutor || isAdmin;
 
+  // Fetch Courses from backend
+  const fetchCourses = async () => {
+    if (!client) return;
+    setLoading(true);
+    try {
+      const response = await authApi.getCourses(client.id);
+      const list = response.courses || response.data?.courses || [];
+      const mapped = list.map((item: any) => ({
+        id: item.id,
+        title: item.course_name,
+        description: item.description,
+        duration: item.duration,
+        level: item.level || "BEGINNER",
+        language: item.language || "ENGLISH",
+        thumbnail_url: item.course_image || item.thumbnail_url || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600",
+        tags: item.tags || [],
+      }));
+      setCourses(mapped);
+    } catch (err: any) {
+      console.warn("Failed to load courses from API", err.message);
+      setCourses([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCourses();
+  }, [client]);
+
   // Open Add Modal
   const openAddModal = () => {
     setIsEditing(false);
     setEditId(null);
     setTitle("");
+    setDuration("");
     setLevel("BEGINNER");
     setLanguage("ENGLISH");
     setDescription("");
@@ -76,16 +110,31 @@ function CoursesPage() {
   };
 
   // Open Edit Modal
-  const openEditModal = (course: any) => {
-    setIsEditing(true);
-    setEditId(course.id);
-    setTitle(course.title || "");
-    setLevel(course.level || "BEGINNER");
-    setLanguage(course.language || "ENGLISH");
-    setDescription(course.description || "");
-    setThumbnailUrl(course.thumbnail_url || "");
-    setTagsInput(course.tags ? course.tags.join(", ") : "");
-    setIsFormOpen(true);
+  const openEditModal = async (course: any) => {
+    if (!client) return;
+    setLoading(true);
+    try {
+      const response = await authApi.getCourse(client.id, course.id);
+      if (response.success && response.course) {
+        const c = response.course;
+        setEditId(c.id);
+        setTitle(c.course_name || "");
+        setDuration(c.duration || "");
+        setDescription(c.description || "");
+        setLevel(course.level || "BEGINNER");
+        setLanguage(course.language || "ENGLISH");
+        setThumbnailUrl(c.course_image || course.thumbnail_url || "");
+        setTagsInput(course.tags ? course.tags.join(", ") : "");
+        setIsEditing(true);
+        setIsFormOpen(true);
+      } else {
+        toast.error("Failed to load course details");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to load course details");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Submit Form
@@ -98,27 +147,53 @@ function CoursesPage() {
       return;
     }
 
-    const payload = {
-      title,
-      level,
-      language,
-      description,
-      thumbnail_url: thumbnailUrl || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600",
-      tags: tagsInput ? tagsInput.split(",").map(t => t.trim()).filter(Boolean) : [],
-    };
-
     if (isEditing && editId) {
-      setCourses(prev => prev.map(c => c.id === editId ? { ...c, ...payload } : c));
-      toast.success("Course updated successfully");
+      setLoading(true);
+      try {
+        const payload = {
+          course_name: title,
+          description,
+          duration: duration || "1 year",
+          client_id: client.id,
+          enabled: true,
+        };
+        const response = await authApi.updateCourse(client.id, editId, payload);
+        if (response.success) {
+          toast.success(response.message || "Course updated successfully");
+          fetchCourses();
+          setIsFormOpen(false);
+        } else {
+          toast.error("Failed to update course");
+        }
+      } catch (err: any) {
+        toast.error(err.message || "Failed to update course");
+      } finally {
+        setLoading(false);
+      }
     } else {
-      const newCourse = {
-        id: String(Date.now()),
-        ...payload
-      };
-      setCourses(prev => [...prev, newCourse]);
-      toast.success("Course created successfully");
+      setLoading(true);
+      try {
+        const payload = {
+          course_name: title,
+          description,
+          duration: duration || "1 year",
+          client_id: client.id,
+          enabled: true,
+        };
+        const response = await authApi.createCourse(client.id, payload);
+        if (response.success) {
+          toast.success(response.message || "Course created successfully");
+          fetchCourses();
+          setIsFormOpen(false);
+        } else {
+          toast.error("Failed to create course");
+        }
+      } catch (err: any) {
+        toast.error(err.message || "Failed to create course");
+      } finally {
+        setLoading(false);
+      }
     }
-    setIsFormOpen(false);
   };
 
   // Delete Course
@@ -126,8 +201,20 @@ function CoursesPage() {
     if (!client) return;
     if (!confirm("Are you sure you want to delete this course?")) return;
 
-    setCourses(prev => prev.filter(c => c.id !== courseId));
-    toast.success("Course deleted");
+    setLoading(true);
+    try {
+      const response = await authApi.deleteCourse(client.id, courseId);
+      if (response.success) {
+        toast.success(response.message || "Course deleted successfully");
+        fetchCourses();
+      } else {
+        toast.error("Failed to delete course");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete course");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -216,6 +303,11 @@ function CoursesPage() {
                     <span className="flex items-center gap-1">
                       <Award className="h-3.5 w-3.5" /> {course.level ? course.level.toLowerCase() : "beginner"}
                     </span>
+                    {course.duration && (
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5" /> {course.duration}
+                      </span>
+                    )}
                   </div>
 
                   <p className="mt-4 text-xs leading-relaxed text-muted-foreground line-clamp-3 font-medium">
@@ -266,6 +358,17 @@ function CoursesPage() {
                     value={title} 
                     onChange={(e) => setTitle(e.target.value)} 
                     placeholder="e.g. Intro to Advanced SQL"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="course-duration">Duration</Label>
+                  <Input 
+                    id="course-duration" 
+                    required 
+                    value={duration} 
+                    onChange={(e) => setDuration(e.target.value)} 
+                    placeholder="e.g. 3 years, 6 months"
                   />
                 </div>
 

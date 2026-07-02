@@ -15,15 +15,15 @@ export const authApi = {
     country_code?: string;
     email?: string;
     password: string;
-  }) => erp.post<LoginResponse>("/auth/api/auth/login", payload, { auth: false }),
+  }) => erp.post<LoginResponse>("/api/auth/login", payload, { auth: false }),
 
   requestOtp: (payload: { phone: string; country_code: string }) =>
-    erp.post<{ success: boolean }>("/auth/api/auth/request-otp", payload, {
+    erp.post<{ success: boolean }>("/api/auth/request-otp", payload, {
       auth: false,
     }),
 
   verifyOtp: (payload: { phone: string; country_code: string; otp: string }) =>
-    erp.post<LoginResponse>("/auth/api/auth/verify-otp", payload, {
+    erp.post<LoginResponse>("/api/auth/verify-otp", payload, {
       auth: false,
     }),
 
@@ -40,16 +40,133 @@ export const authApi = {
       page?: number;
       limit?: number;
       totalPages?: number;
-    }>(`/auth/api/clients?${qs.toString()}`);
+    }>(`/api/clients?${qs.toString()}`);
   },
 
   getUser: (clientId: string, userId: string) =>
     erp.get<{ success: boolean; user: AuthUser & { user_mappings?: Array<{ role_id: string; role: { id: string; name: string } }> } }>(
-      `/auth/api/users/client/${clientId}/user/${userId}`,
+      `/api/users/client/${clientId}/user/${userId}`,
     ),
 
   getPermissions: (clientId: string, roleId: string) =>
     erp.get<{ success: boolean; permissions: Permission[] }>(
-      `/auth/api/permissions/client/${clientId}/role/${roleId}`,
+      `/api/permissions/client/${clientId}/role/${roleId}`,
     ),
+
+  createCourse: (
+    clientId: string,
+    payload: {
+      course_name: string;
+      description: string;
+      duration: string;
+      client_id: string;
+      enabled: boolean;
+    }
+  ) =>
+    erp.post<{
+      success: boolean;
+      message?: string;
+      course?: {
+        id: string;
+        enabled: boolean;
+        created_at: string;
+        updated_at: string;
+        course_name: string;
+        description: string;
+        department?: string | null;
+        duration: string;
+        client_id: string;
+        course_image?: string | null;
+        created_by: string;
+        updated_by: string;
+      };
+    }>(`/api/courses/client/${clientId}`, payload),
+
+  updateCourse: (
+    clientId: string,
+    courseId: string,
+    payload: {
+      course_name: string;
+      description: string;
+      duration: string;
+      client_id: string;
+      enabled: boolean;
+    }
+  ) =>
+    erp.put<{
+      success: boolean;
+      message?: string;
+      course?: {
+        id: string;
+        enabled: boolean;
+        created_at: string;
+        updated_at: string;
+        course_name: string;
+        description: string;
+        department?: string | null;
+        duration: string;
+        client_id: string;
+        course_image?: string | null;
+        created_by: string;
+        updated_by: string;
+      };
+    }>(`/api/courses/client/${clientId}/course/${courseId}`, payload),
+
+  getCourses: (clientId: string) =>
+    erp.get<{
+      success: boolean;
+      courses?: Array<{
+        id: string;
+        enabled: boolean;
+        created_at: string;
+        updated_at: string;
+        course_name: string;
+        description: string;
+        department?: string | null;
+        duration: string;
+        client_id: string;
+        course_image?: string | null;
+        created_by: string;
+        updated_by: string;
+      }>;
+      data?: {
+        courses?: Array<{
+          id: string;
+          enabled: boolean;
+          created_at: string;
+          updated_at: string;
+          course_name: string;
+          description: string;
+          department?: string | null;
+          duration: string;
+          client_id: string;
+          course_image?: string | null;
+          created_by: string;
+          updated_by: string;
+        }>;
+      };
+    }>(`/api/courses/client/${clientId}`),
+
+  deleteCourse: (clientId: string, courseId: string) =>
+    erp.del<{ success: boolean; message?: string }>(`/api/courses/client/${clientId}/course/${courseId}`),
+
+  getCourse: (clientId: string, courseId: string) =>
+    erp.get<{
+      success: boolean;
+      message?: string;
+      course?: {
+        id: string;
+        enabled: boolean;
+        created_at: string;
+        updated_at: string;
+        course_name: string;
+        description: string;
+        department?: string | null;
+        duration: string;
+        client_id: string;
+        course_image?: string | null;
+        created_by: string;
+        updated_by: string;
+      };
+    }>(`/api/courses/client/${clientId}/course/${courseId}`),
 };
