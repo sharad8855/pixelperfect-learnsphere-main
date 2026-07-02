@@ -220,4 +220,50 @@ export const authApi = {
         } | null;
       }>;
     }>(`/api/classes/client/${clientId}?page=${page}&limit=${limit}`),
+
+  createDivision: (
+    clientId: string,
+    payload: {
+      class: string;
+      division: string;
+      detailed_info: string;
+      course?: string | null;
+      class_teacher?: string | null;
+      max_student?: number | string | null;
+      enabled: boolean;
+      client_id: string;
+    }
+  ) =>
+    erp.post<{
+      success: boolean;
+      message?: string;
+      division?: any;
+    }>(`/api/divisions/client/${clientId}/`, payload),
+
+  getDivisions: (clientId: string) =>
+    erp.get<{
+      success: boolean;
+      message?: string;
+      divisions?: Array<{
+        id: string;
+        class: string;
+        division: string;
+        detailed_info?: string | null;
+        course?: string | null;
+        class_teacher?: string | null;
+        max_student?: number | null;
+        enabled: boolean;
+        client_id: string;
+        users?: {
+          id: string;
+          first_name: string;
+          last_name: string;
+        } | null;
+        classes?: {
+          id: string;
+          title: string;
+          class_name: string;
+        } | null;
+      }>;
+    }>(`/api/divisions/client/${clientId}/`),
 };
