@@ -24,6 +24,7 @@ export const Route = createFileRoute("/_app/classes")({
 });
 
 function ClassesPage() {
+  const user = useAuthStore((s) => s.user);
   const client = useAuthStore((s) => s.client);
   const storedRoleName = useAuthStore((s) => s.roleName);
 
@@ -71,7 +72,7 @@ function ClassesPage() {
     setTitle("");
     setClassName("");
     setDetailedInfo("");
-    setClassTeacher("");
+    setClassTeacher(isTutor && user?.id ? user.id : "");
     setMaxStudents("");
     setIsEnabled(true);
     setSubstituteTeacherInput("");
@@ -260,6 +261,11 @@ function ClassesPage() {
                     onChange={(e) => setClassTeacher(e.target.value)} 
                     placeholder="e.g. 2c65b0c6-5b7e-41cc..."
                   />
+                  {isTutor && user?.id === classTeacher && (
+                    <span className="text-[10px] text-primary font-bold block mt-1">
+                      ℹ️ Prefilled with your Teacher User ID
+                    </span>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
