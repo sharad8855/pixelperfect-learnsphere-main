@@ -9,6 +9,92 @@ export interface LoginResponse {
   [k: string]: unknown;
 }
 
+export interface GetFormResponse {
+  message?: string;
+  form?: {
+    id: string;
+    client_id: string;
+    title: string;
+    description: string;
+    is_published: boolean;
+    show_progress_bar: boolean;
+    shuffle_questions: boolean;
+    deadline: string | null;
+    max_submissions: number | null;
+    shareable_url: string | null;
+    type: string;
+    created_at: string;
+    sections: any[];
+    questions: Array<{
+      question_id: string;
+      form_id: string;
+      client_id: string;
+      section_id: string | null;
+      question_type_id: string;
+      question_text: string;
+      description: string | null;
+      question_order: number;
+      is_required: boolean;
+      is_deleted: boolean;
+      points: number;
+      media_url: string | null;
+      media_type: string | null;
+      scale_min: number | null;
+      scale_max: number | null;
+      scale_min_label: string | null;
+      scale_max_label: string | null;
+      validation_type: string | null;
+      validation_value: string | null;
+      validation_message: string | null;
+      grid_rows: any | null;
+      grid_columns: any | null;
+      created_at: string;
+      updated_at: string;
+      question_type: {
+        id: string;
+        type_name: string;
+        description: string;
+        is_deleted: boolean;
+      };
+      options: any[];
+      answer_key: any | null;
+    }>;
+    settings?: {
+      setting_id: string;
+      form_id: string;
+      confirmation_email: boolean;
+      confirmation_message: string;
+      edit_after_submit: boolean;
+      show_summary: boolean;
+      quiz_mode: boolean;
+      release_score_immediately: boolean;
+      show_correct_answers: boolean;
+      respondent_can_view_answers: boolean;
+      require_sign_in: boolean;
+      default_question_point: number;
+      notify_on_new_response: boolean;
+      allow_multiple_submissions: boolean;
+      allow_copy_content: boolean;
+      enable_timer: boolean;
+      timer_duration: number | null;
+      auto_submit_on_timeout: boolean;
+      disable_tab_switch: boolean;
+      effective_date: string | null;
+      expiration_date: string | null;
+      color_code: string | null;
+      font: string | null;
+      response_message: string | null;
+      response_url: string | null;
+      action: string | null;
+      action_value: string | null;
+      background_color: string | null;
+      webhook_url: string | null;
+      webhook_event: string | null;
+    };
+    total_points: number;
+  };
+}
+
 export const authApi = {
   loginPassword: (payload: {
     phone?: string;
@@ -348,4 +434,37 @@ export const authApi = {
         form_id: string;
       };
     }>(`/api/form/client/${clientId}/`, payload),
+
+  getForm: (clientId: string, formId: string) =>
+    erp.get<GetFormResponse>(`/api/form/client/${clientId}/form/${formId}`),
+
+  getExams: (clientId: string) =>
+    erp.get<{
+      success?: boolean;
+      message?: string;
+      data?: any[];
+    }>(`/api/exams/client/${clientId}`),
+
+  createExam: (clientId: string, payload: any) =>
+    erp.post<{
+      success?: boolean;
+      message?: string;
+      data?: {
+        exam_id: string;
+        exam_detail_id: string;
+        total_students: number;
+      };
+    }>(`/api/exams/client/${clientId}`, payload),
+
+  updateExam: (clientId: string, examId: string, payload: any) =>
+    erp.put<{
+      success?: boolean;
+      message?: string;
+    }>(`/api/exams/client/${clientId}/exam/${examId}`, payload),
+
+  deleteExam: (clientId: string, examId: string) =>
+    erp.delete<{
+      success?: boolean;
+      message?: string;
+    }>(`/api/exams/client/${clientId}/exam/${examId}`),
 };
