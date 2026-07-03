@@ -181,6 +181,7 @@ export const authApi = {
       is_enabled: boolean;
       client_id: string;
       substitute_teacher: string[];
+      form_id?: string | null;
     }
   ) =>
     erp.post<{
@@ -196,6 +197,7 @@ export const authApi = {
         is_enabled: boolean;
         client_id: string;
         substitute_teacher: string[];
+        form_id?: string | null;
       };
     }>(`/api/classes/client/${clientId}`, payload),
 
@@ -213,6 +215,7 @@ export const authApi = {
         is_enabled: boolean;
         client_id: string;
         substitute_teacher: string[];
+        form_id?: string | null;
         users?: {
           id: string;
           first_name: string;
@@ -232,6 +235,7 @@ export const authApi = {
       max_student?: number | string | null;
       enabled: boolean;
       client_id: string;
+      form_id?: string | null;
     }
   ) =>
     erp.post<{
@@ -240,9 +244,9 @@ export const authApi = {
       division?: any;
     }>(`/api/divisions/client/${clientId}/`, payload),
 
-  getDivisions: (clientId: string) =>
+  getDivisions: (clientId: string, page = 1, limit = 100) =>
     erp.get<{
-      success: boolean;
+      success?: boolean;
       message?: string;
       divisions?: Array<{
         id: string;
@@ -254,16 +258,94 @@ export const authApi = {
         max_student?: number | null;
         enabled: boolean;
         client_id: string;
-        users?: {
+        form_id?: string | null;
+        user?: {
           id: string;
           first_name: string;
           last_name: string;
         } | null;
         classes?: {
           id: string;
-          title: string;
           class_name: string;
         } | null;
       }>;
-    }>(`/api/divisions/client/${clientId}/`),
+    }>(`/api/divisions/client/${clientId}/division?page=${page}&limit=${limit}`),
+
+  createSubject: (
+    clientId: string,
+    payload: {
+      name: string;
+      class_id: string;
+      course?: string | null;
+      book?: string | null;
+      division?: string | null;
+      teacher?: string | null;
+      client_id: string;
+      enabled: boolean;
+      is_compulsory: boolean;
+      description: string;
+      type: string;
+      form_id?: string | null;
+    }
+  ) =>
+    erp.post<{
+      success: boolean;
+      message?: string;
+      subject?: any;
+    }>(`/api/subjects/client/${clientId}`, payload),
+
+  getSubjects: (clientId: string, page = 1, limit = 100) =>
+    erp.get<{
+      success?: boolean;
+      message?: string;
+      subjects?: Array<{
+        id: string;
+        name: string;
+        class_id: string;
+        division?: string | null;
+        teacher?: string | null;
+        enabled: boolean;
+        is_compulsory: boolean;
+        description?: string | null;
+        form_id?: string | null;
+        classes?: {
+          title: string;
+          class_name: string;
+        } | null;
+        divisions?: {
+          division: string;
+        } | null;
+        user?: {
+          first_name: string;
+          last_name: string;
+        } | null;
+      }>;
+      totalSubjects?: number;
+      totalPages?: number;
+      currentPage?: number;
+    }>(`/api/subjects/client/${clientId}?page=${page}&limit=${limit}`),
+
+  createForm: (
+    clientId: string,
+    payload: {
+      title: string;
+      description: string;
+      client_id: string;
+      questions: Array<{
+        question_type_id: string;
+        question_id: string;
+        question_text: string;
+        is_required: boolean;
+        question_order: number;
+      }>;
+    }
+  ) =>
+    erp.post<{
+      success?: boolean;
+      message?: string;
+      form?: {
+        message: string;
+        form_id: string;
+      };
+    }>(`/api/form/client/${clientId}/`, payload),
 };
